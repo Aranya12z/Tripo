@@ -1,0 +1,15 @@
+openapi: 3.0.0
+info:
+  title: Hackathon API
+  version: 1.0.0
+
+paths:
+  /api/auth/login:
+    post:
+      summary: Login user
+  /api/auth/logout:
+    post:
+      summary: Logout user
+  /api/auth/me:
+    get:
+      summary: Get current user
