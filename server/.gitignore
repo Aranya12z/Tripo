@@ -1,0 +1,19 @@
+# Env (local)
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+
+# Runtime files
+uploads/
+
+# Node
+node_modules/
+dist/
+coverage/
+
+# Prisma engines cache (safe)
+.prisma/
