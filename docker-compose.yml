@@ -1,88 +1,33 @@
+version: "3.9"
+
 services:
-  mysql:
+  db:
     image: mysql:8.0
-    container_name: tripo-mysql
+    container_name: hackathon-mysql
     restart: unless-stopped
-    command: ["mysqld", "--default-authentication-plugin=mysql_native_password"]
+
     environment:
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: tripo
+      MYSQL_USER: tripo_user
+      MYSQL_PASSWORD: tripo_password
+
+    ports:
+      - "3306:3306"
+
     volumes:
       - mysql_data:/var/lib/mysql
-    networks:
-      - private
+
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 10
-    security_opt:
-      - no-new-privileges:true
-
-  server:
-    build:
-      context: ./server
-      dockerfile: Dockerfile
-      args:
-        NODE_ENV: production
-    container_name: tripo-server
-    restart: unless-stopped
-    environment:
-      NODE_ENV: production
-      PORT: 5000
-      DATABASE_URL: ${DATABASE_URL}
-      JWT_SECRET: ${JWT_SECRET}
-      CLIENT_URL: ${CLIENT_URL}
-    depends_on:
-      mysql:
-        condition: service_healthy
-    networks:
-      - private
-    healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:5000/health', r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
-      interval: 15s
-      timeout: 5s
-      retries: 10
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-
-  nginx:
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
-    container_name: tripo-nginx
-    restart: unless-stopped
-    depends_on:
-      server:
-        condition: service_healthy
-    ports:
-      - "80:80"
-      # - "443:443"  # enable when you add TLS certs
-    networks:
-      - public
-      - private
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    cap_add:
-      - NET_BIND_SERVICE
-    read_only: true
-    tmpfs:
-      - /var/cache/nginx
-      - /var/run
-      - /tmp
-
-networks:
-  public:
-    driver: bridge
-  private:
-    driver: bridge
-    internal: true
 
 volumes:
   mysql_data:
